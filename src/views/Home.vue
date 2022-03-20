@@ -1,33 +1,74 @@
 <script setup>
 import ButtonRepo from '@/components/ButtonRepo.vue'
+import FileUpload from '@/components/FileUpload.vue'
+import SoundFiles from '@/components/SoundFiles.vue'
+
 import * as Tone from 'tone'
-import { ref, watch } from 'vue'
+import { onBeforeMount, onMounted, ref, watch } from 'vue'
 
-const velocity = ref(30)
-const distortion = ref(20)
+const velocity = ref(-100)
 
-const synth = new Tone.Synth().toDestination()
-const vol = ref(velocity / 100);
+// const activeSound = ref('C4')
+const activeSound = ref('http://localhost:8080/files/redParrott.mp3')
+const isFile = ref(true)
 
-function scale (number, inMin, inMax, outMin, outMax) {
-    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+const isActive = ref(false)
+
+function setActiveSound(sound, file) {
+  // let sound = event.target.value
+  file ? isFile.value = true : isFile.value = false
+  console.log(sound)
+  
+  activeSound.value = sound
+  console.log(isFile)
+  console.log(activeSound)
 }
+// const distortion = ref(20)
 
-const tone = ref(synth)
+const synth = new Tone.Synth().toDestination();
+let player;	// declare this here so we can access it in different functions
+const buffer = new Tone.ToneAudioBuffer(activeSound.value, () => {
+    console.log('LOADED')
+    player = new Tone.Player(buffer);
+    player.toDestination();
+})
+
+
+// function scale (number, inMin, inMax, outMin, outMax) {
+//     return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+// }
 
 watch(velocity, async (newQuestion, oldQuestion) => {
   if (newQuestion != oldQuestion) {
-    const value = scale(newQuestion, 0, 1000, -60, 8)
-    synth.volume.value = value
-    console.log(synth.volume.value)
+    console.log(isActive.value)
+    // const value = scale(newQuestion, -100, 1000, -60, 8)
+    if (newQuestion < 200 && isActive.value) {
+      console.log('RELEASE')
+
+      if (isFile.value) {
+        player.stop()
+      } else {
+        synth.triggerRelease();
+      }
+      isActive.value = false;
+    } else if (newQuestion >= 200 && !isActive.value){ 
+      console.log('SHOULD TRIGGER')
+      if (isFile.value) {
+        console.log(player)
+        player.start();
+      } else {
+        synth.triggerAttack(activeSound.value);
+      }
+      isActive.value = true;
+    }
   }
 })
 
-async function playSound () {
-  synth.volume.value = -100
-  console.log(synth.volume.value)
-  synth.triggerAttack("C4");
+async function start () {
+  await Tone.start()
+	console.log('audio is ready')
 }
+
 </script>
 
 <template>
@@ -43,17 +84,25 @@ async function playSound () {
     
     <div>
       <label>Velocity</label>
-      <input v-model="velocity" type="range" min="0" max="1000"/>
+      <input v-model="velocity" type="range" min="-100" max="1000"/>
       {{ velocity }}
     </div>
-    
 
-    <div>
+    <!-- <div>
       <label>Distortion</label>
       <input v-model="distortion" type="range" min="0" max="100"/>
       {{ distortion }}
-    </div>
+    </div> -->
+    <SoundFiles 
+      :setActiveSound="setActiveSound"
+      :activeSound="activeSound"
+    />
+    <button @click="start" class="inline-flex items-center justify-center rounded-md border border-transparent bg-black px-5 py-3 text-white font-medium leading-6 text-white transition duration-150 ease-in-out hover:bg-white hover:text-black focus:outline-none">
+      INITIALISE APP
+    </button>
 
-    <ButtonRepo :action="playSound">Play sound</ButtonRepo>
+    <!-- <ButtonRepo :action="playSound">Play sound</ButtonRepo> -->
+
+    <FileUpload />
   </div>
 </template>

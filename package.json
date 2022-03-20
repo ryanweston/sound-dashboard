@@ -7,6 +7,8 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "axios": "^0.26.1",
+    "sass": "^1.49.9",
     "tone": "^14.8.38",
     "vue": "^3.2.31",
     "vue-router": "^4.0.12"
