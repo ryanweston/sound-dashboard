@@ -14,7 +14,7 @@ const connectedToServer = ref(false)
 const connectedToArduino = ref(false)
 
 socket.on('connectedDevices', function(data) {
-  console.log(data)
+  // console.log(data)
   if(data.includes('client')) {
     connectedToServer = true
   } else {
@@ -30,8 +30,11 @@ socket.on('connectedDevices', function(data) {
 let velocity = ref(-100)
 
 socket.on('velocity', function( data ) {
-  console.log(data)
-  serverVelocity.value = data.velocity
+  if(data>50){
+    serverVelocity.value = data
+  } else {
+    serverVelocity.value = 0
+  }
 });
 
 // const activeSound = ref('C4')
@@ -152,7 +155,7 @@ async function start () {
     </div>
     <div>
       <label>Velocity</label>
-      <input v-model="velocity" type="range" min="-100" max="1000"/>
+      <input v-model="velocity" type="range" min="0" max="1000"/>
       {{ velocity }}
     </div>
 
