@@ -1,30 +1,29 @@
 <script setup>
-import ButtonRepo from '@/components/ButtonRepo.vue'
 import FileUpload from '@/components/FileUpload.vue'
 import SoundFiles from '@/components/SoundFiles.vue'
 import { io } from "socket.io-client";
 
 import * as Tone from 'tone'
-import { onBeforeMount, onMounted, ref, watch, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 
 
 const socket = io('http://localhost:3000', { query: "name=client" })
 
-const serverVelocity = reactive({ value: 0 })
-const connectedToServer = reactive({ value: false })
-const connectedToArduino = reactive({ value: false })
+const serverVelocity = ref(0)
+const connectedToServer = ref(false)
+const connectedToArduino = ref(false)
 
 socket.on('connectedDevices', function(data) {
   console.log(data)
   if(data.includes('client')) {
-    connectedToServer.value = true
+    connectedToServer = true
   } else {
-    connectedToServer.value = false
+    connectedToServer = false
   }
   if(data.includes('arduino')) {
-    connectedToArduino.value = true
+    connectedToArduino = true
   } else {
-    connectedToArduino.value = false
+    connectedToArduino = false
   }
 });
 
@@ -36,55 +35,67 @@ socket.on('velocity', function( data ) {
 });
 
 // const activeSound = ref('C4')
-const activeSound = ref('http://localhost:8080/files/redParrott.mp3')
+const activeSound = reactive({})
 const isFile = ref(true)
+const filesAmount = ref(0)
+let files = ref([]);
+
 
 const isActive = ref(false)
 
 function setActiveSound(sound, file) {
-  // let sound = event.target.value
   file ? isFile.value = true : isFile.value = false
-  console.log(sound)
-  
   activeSound.value = sound
-  console.log(isFile)
-  console.log(activeSound)
+  console.log(activeSound.value);
 }
-// const distortion = ref(20)
 
 const synth = new Tone.Synth().toDestination();
-let player;	// declare this here so we can access it in different functions
-const buffer = new Tone.ToneAudioBuffer(activeSound.value, () => {
-    console.log('LOADED')
-    player = new Tone.Player(buffer);
-    player.toDestination();
-})
+let players = [];	// declare this here so we can access it in different functions
+let buffers = [];
 
+const setFiles = (filesWow) => {
+  files.value = filesWow
+}
 
-// function scale (number, inMin, inMax, outMin, outMax) {
-//     return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-// }
+function setFilesAmount (amount) {
+  filesAmount.value = amount
+  console.log(filesAmount.value)
+} 
 
-watch(velocity, async (newQuestion, oldQuestion) => {
-  if (newQuestion != oldQuestion) {
-    console.log(isActive.value)
-    // const value = scale(newQuestion, -100, 1000, -60, 8)
-    if (newQuestion < 200 && isActive.value) {
+function loadBuffers() {
+  for (let i = 0; i < filesAmount.value; i++) {
+    let buffer = new Tone.ToneAudioBuffer(files.value[i].url, () => {
+      console.log('LOADED')
+      players[i] = new Tone.Player(buffer)
+      console.log(i)
+      // players[i].toDestination();
+    })
+    console.log(buffer)
+    buffers.push(buffer)
+  }
+  console.log(filesAmount)
+}
+
+watch(velocity, async (newVelocity, oldVelocity) => {
+  if (newVelocity != oldVelocity) {
+    console.log(activeSound.value)
+    if (newVelocity < 200) {
       console.log('RELEASE')
-
       if (isFile.value) {
-        player.stop()
+        players[activeSound.value.id].stop() // issue here that the active sound is changed midway through velocity, it wont remove the previous sound from playing
+        players[activeSound.value.id].disconnect()
       } else {
         synth.triggerRelease();
       }
       isActive.value = false;
-    } else if (newQuestion >= 200 && !isActive.value){ 
+    } else if (newVelocity >= 200){ 
       console.log('SHOULD TRIGGER')
       if (isFile.value) {
-        console.log(player)
-        player.start();
+        console.log('Player', players)
+        players[activeSound.value.id].toDestination()
+        players[activeSound.value.id].start();
       } else {
-        synth.triggerAttack(activeSound.value);
+        synth.triggerAttack(activeSound.value.url);
       }
       isActive.value = true;
     }
@@ -99,8 +110,11 @@ function getBackground(bool) {
 
 }
 async function start () {
-  await Tone.start()
+  await Tone.start();
+  loadBuffers();
 	console.log('audio is ready')
+  setTimeout(() => { console.log('players', players)}, 3000)
+  console.log('buffers', buffers)
 }
 
 </script>
@@ -121,42 +135,41 @@ async function start () {
         > 
            Connections
       </h3>
-      <div :class="getBackground(connectedToServer.value)">
+      <div :class="getBackground(connectedToServer)">
         <h3
         class="text-l leading-9 text-center tracking-tight text-gray-900 sm:leading-10"
         > 
-          Client: <b> {{ connectedToServer.value }} </b>
+          Client: <b> {{ connectedToServer }} </b>
         </h3>
       </div>
-      <div :class="getBackground(connectedToArduino.value)">
+      <div :class="getBackground(connectedToArduino)">
         <h3
         class="text-l leading-9 text-center tracking-tight text-gray-900 sm:leading-10"
         > 
-          Arduino: <b> {{ connectedToArduino.value }} </b>
+          Arduino: <b> {{ connectedToArduino }} </b>
         </h3>
       </div>
     </div>
     <div>
       <label>Velocity</label>
-      <input v-model="serverVelocity.value" type="range" min="-100" max="1000"/>
-      {{ serverVelocity.value }}
+      <input v-model="velocity" type="range" min="-100" max="1000"/>
+      {{ velocity }}
     </div>
 
-    <!-- <div>
-      <label>Distortion</label>
-      <input v-model="distortion" type="range" min="0" max="100"/>
-      {{ distortion }}
-    </div> -->
     <SoundFiles 
       :setActiveSound="setActiveSound"
       :activeSound="activeSound"
+      :setFilesAmount="setFilesAmount"
+      :setFiles="setFiles"
+      :files="files"
     />
+
+    
     <button @click="start" class="inline-flex items-center justify-center rounded-md border border-transparent bg-black px-5 py-3 text-white font-medium leading-6 text-white transition duration-150 ease-in-out hover:bg-white hover:text-black focus:outline-none">
       INITIALISE APP
     </button>
 
-    <!-- <ButtonRepo :action="playSound">Play sound</ButtonRepo> -->
-
     <FileUpload />
+
   </div>
 </template>
