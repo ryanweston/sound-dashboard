@@ -9,21 +9,20 @@ import { ref, reactive, watch } from 'vue'
 
 const socket = io('http://localhost:3000', { query: "name=client" })
 
-const serverVelocity = ref(0)
 const connectedToServer = ref(false)
 const connectedToArduino = ref(false)
 
 socket.on('connectedDevices', function(data) {
   // console.log(data)
   if(data.includes('client')) {
-    connectedToServer = true
+    connectedToServer.value = true
   } else {
-    connectedToServer = false
+    connectedToServer.value = false
   }
   if(data.includes('arduino')) {
-    connectedToArduino = true
+    connectedToArduino.value = true
   } else {
-    connectedToArduino = false
+    connectedToArduino.value = false
   }
 });
 
@@ -31,9 +30,9 @@ let velocity = ref(-100)
 
 socket.on('velocity', function( data ) {
   if(data>50){
-    serverVelocity.value = data
+    velocity.value = data
   } else {
-    serverVelocity.value = 0
+    velocity.value = 0
   }
 });
 
@@ -82,16 +81,16 @@ function loadBuffers() {
 watch(velocity, async (newVelocity, oldVelocity) => {
   if (newVelocity != oldVelocity) {
     console.log(activeSound.value)
-    if (newVelocity < 200) {
+    if (newVelocity < 50 &&  isActive.value) {
       console.log('RELEASE')
       if (isFile.value) {
         players[activeSound.value.id].stop() // issue here that the active sound is changed midway through velocity, it wont remove the previous sound from playing
-        players[activeSound.value.id].disconnect()
+        // players[activeSound.value.id].disconnect()
       } else {
         synth.triggerRelease();
       }
       isActive.value = false;
-    } else if (newVelocity >= 200){ 
+    } else if (newVelocity >= 50 && !isActive.value){ 
       console.log('SHOULD TRIGGER')
       if (isFile.value) {
         console.log('Player', players)

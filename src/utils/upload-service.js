@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3500';
+const BASE_URL = 'http://localhost:3000';
 
 function upload(formData) {
     const url = `${BASE_URL}/upload`;
@@ -19,7 +19,7 @@ function upload(formData) {
 }
 
 function fetchFiles() {
-  return axios.get('http://localhost:3500/files')
+  return axios.get('http://localhost:3000/files')
 }
 
 export { upload, fetchFiles }

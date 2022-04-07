@@ -18,7 +18,7 @@ const reff = ref(props.activeSound)
 
 // @ts-ignore
 onMounted(async () => {
-  const res = await axios.get('http://localhost:3500/files')
+  const res = await axios.get('http://localhost:3000/files')
   props.setFiles(res.data)
   props.setFilesAmount(res.data.length)
   console.log(props.files)
