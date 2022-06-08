@@ -2,20 +2,10 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:3000';
 
-function upload(formData) {
-    const url = `${BASE_URL}/upload`;
-    return axios.post(url, formData)
-        // get data
-        .then(x => {
-          x.data
-          console.log(x)
-        })
-        // add url field
-        .then(x => x.map(file => { 
-          console.log(file)
-          Object.assign({}, file, { url: `${BASE_URL}/files/${file.id}` })
-        }
-        ));
+async function upload(formData) {
+  const url = `${BASE_URL}/upload`;
+  console.log('posty baby', formData)
+  await axios.post(url, formData)
 }
 
 function fetchFiles() {
