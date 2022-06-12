@@ -51,7 +51,7 @@ export default {
 .dropbox {
   border-radius:10px;
   padding: 10px 0px;
-  min-height: 50px; /* minimum height */
+  height: 50px; /* minimum height */
   position: relative;
   cursor: pointer;
 }
@@ -60,6 +60,9 @@ export default {
   opacity: 0; /* invisible but it's there! */
   height: 50px;
   position: absolute;
+  width:100%;
+  top:0;
+  left:0;
   cursor: pointer;
 }
 </style>

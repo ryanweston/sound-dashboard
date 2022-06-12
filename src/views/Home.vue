@@ -36,16 +36,19 @@ socket.on("velocity", function (data) {
 });
 
 const activeSound = reactive({});
-const applicationStarted = reactive(false);
+const applicationStarted = ref(false);
 const isFile = ref(true);
 const filesAmount = ref(0);
 let files = ref([]);
 
 const isActive = ref(false);
 
+const queue = ref([])
+
 function setActiveSound(sound, file) {
   file ? (isFile.value = true) : (isFile.value = false);
   activeSound.value = sound;
+  queue.value.push(sound.id)
 }
 
 const synth = new Tone.Synth().toDestination();
@@ -74,14 +77,14 @@ watch(velocity, async (newVelocity, oldVelocity) => {
   // set sound volume
   players[activeSound.value.id].volume.value =
     (newVelocity / 200) * (newVelocity / 300);
-  // players[activeSound.value.id].volume.value = newVelocity / 100;
-  console.log(newVelocity / 100 - 0.5);
+  
   if (newVelocity != oldVelocity) {
-    console.log(newVelocity);
     if (newVelocity < 50 && isActive.value) {
       console.log("RELEASE");
       if (isFile.value) {
-        players[activeSound.value.id].stop(); // issue here that the active sound is changed midway through velocity, it wont remove the previous sound from playing
+        players[queue.value[0]].stop(); // issue here that the active sound is changed midway through velocity, it wont remove the previous sound from playing
+        if (queue.value.length > 1) 
+          queue.value.shift();
       } else {
         synth.triggerRelease();
       }
@@ -99,16 +102,13 @@ watch(velocity, async (newVelocity, oldVelocity) => {
 });
 
 function getBackground(bool) {
-  if (!bool) {
-    return "bg-red-200";
-  }
-  return "";
+  return bool ? "bg-green-200" : "bg-red-200";
 }
 
 async function start() {
   await Tone.start();
   loadBuffers();
-  applicationStarted = true
+  applicationStarted.value = true
 }
 </script>
 
@@ -142,8 +142,19 @@ async function start() {
        <div class="w-1/2">
         <label class="text-xl leading-9 font-bold tracking-tight text-gray-900 sm:leading-10">Velocity</label>
         <div class="w-full">
-          <input class="range-slider__range" v-model="velocity" type="range" min="0" max="1000"/>
-          <span :class="['range-slider__value', isActive ? 'override-slider__active' : '']">{{ velocity }}</span>
+          <input 
+            :class="['range-slider__range', !applicationStarted? 'cursor-not-allowed focus:outline-none disabled:opacity-25' : '']"
+            :disabled="!applicationStarted" 
+            v-model="velocity"
+            type="range" 
+            min="0" 
+            max="1000"
+          />
+          <span 
+            :class="['range-slider__value', isActive ? 'override-slider__active' : '', !applicationStarted ? 'focus:outline-none opacity-25' : '']"
+          >
+            {{ velocity }}
+          </span>
         </div>
       </div>
 
@@ -187,34 +198,18 @@ async function start() {
         <h2 class="text-2xl mt-8 font-bold">Controls</h2>
         <div class="mt-5">
           <div class="flex flex-row">
-            <div :class="[getBackground(connectedToArduino), 'mr-2 rounded-lg px-4 inline-flex items-center justify-center']">
+            <div :class="[getBackground(applicationStarted), 'mr-2 rounded-lg px-4 inline-flex items-center justify-center']">
               <h3
                 class="text-l tracking-tight text-gray-900"
                 > 
-                  Application is not active
+                  {{ applicationStarted ? 'Application is active' : 'Application is not active' }}
               </h3>
             </div>
             <button
               @click="start"
-              class="
-                inline-flex
-                items-center
-                justify-center
-                rounded-md
-                border-2 border-transparent
-                bg-primary
-                px-5
-                py-3
-                text-white
-                font-medium
-                leading-6
-                text-white
-                transition
-                duration-150
-                ease-in-out
-                hover:bg-white hover:text-primary hover:border-2 hover:border-primary
-                focus:outline-none
-              "
+              :class="['inline-flex items-center justify-center rounded-md border-2 border-transparent bg-primary px-5 py-3 text-white font-medium leading-6 text-white transition duration-150 ease-in-out hover:bg-white hover:text-primary hover:border-2 hover:border-primary focus:outline-none',
+              applicationStarted ? 'cursor-not-allowed focus:outline-none disabled:opacity-25' : '']"
+              :disabled="applicationStarted"
             >
               Start application
             </button>

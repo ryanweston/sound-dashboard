@@ -1,12 +1,15 @@
 <script lang="ts" setup>
-import { ref, onMounted, defineProps, watch } from "vue";
+import { ref, onMounted, defineProps, watch, computed} from "vue";
 import axios from "axios";
 
-let notes = ref(["C4", "F4"]);
+interface activeSound {
+  url: string,
+  id: number
+}
 
 interface Props {
   setActiveSound: Function;
-  activeSound: Object;
+  activeSound: activeSound;
   setFilesAmount: Function;
   setFiles: Function;
   files: any;
@@ -14,7 +17,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const reff = ref(props.activeSound);
 const fileToDelete = ref("");
 
 async function deleteFile() {
@@ -34,15 +36,14 @@ onMounted(async () => {
   props.setFilesAmount(newArr.length);
 });
 
-function changeColor(index) {
+
+
+function changeColor(index: string | number | symbol ) {
   console.log(index);
   document.querySelectorAll(".mainSound").forEach((div) => {
-    div.classList.remove("text-white", "bg-active");
-    // if (!div.classList.value.includes(`index-${index}`)) {
-    //   div.classList.add("bg-red-100");
-    // }
+    div.classList.remove("border-active", "bg-green-100");
   });
-  document.querySelector(`.index-${index}`).classList.add("text-white", "bg-active");
+  document.querySelector(`.index-${index}`).classList.add("border-active", "bg-green-100");
 }
 
 function openDialog() {
@@ -82,24 +83,23 @@ function closeDialog() {
   </div>
 
   <div v-if="props.files">
-    <div v-if="props.files.length && activeSound" class="flex flex-row">
+    <div v-if="props.files.length" class="flex flex-row">
       <!-- @ts-ignore -->
 
       <!-- Sound files -->
-      <!-- {{ activeSound.value.id }} -->
       <div class="flex flex-col rounded mb-10 w-full mt-5">
         <button
           v-for="(file, index) in props.files"
           :key="file.url"
-          :class="`py-3 pl-3 rounded mainSound my-1 button-width border-2 z-20 index-${index} relative text-left`"
+          :class="`py-3 pl-3 rounded mainSound my-1 button-width border-2 z-20 index-${String(index)} relative text-left`"
           :value="file.url"
           @click="
             (value) => {
               setActiveSound({ url: value.target.value, id: index }, true);
               changeColor(index);
-            }
+           }
           "
-        >
+        > 
           {{ file.name }}
           <button
             @click="
