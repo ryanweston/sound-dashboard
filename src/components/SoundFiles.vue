@@ -37,12 +37,12 @@ onMounted(async () => {
 function changeColor(index) {
   console.log(index);
   document.querySelectorAll(".mainSound").forEach((div) => {
-    div.classList.remove("bg-green-300");
+    div.classList.remove("text-white", "bg-active");
     // if (!div.classList.value.includes(`index-${index}`)) {
     //   div.classList.add("bg-red-100");
     // }
   });
-  document.querySelector(`.index-${index}`).classList.add("bg-green-300");
+  document.querySelector(`.index-${index}`).classList.add("text-white", "bg-active");
 }
 
 function openDialog() {
@@ -81,7 +81,6 @@ function closeDialog() {
     </div>
   </div>
 
-  <h2 class="text-2xl mt-8 font-bold">Uploaded sounds</h2>
   <div v-if="props.files">
     <div v-if="props.files.length && activeSound" class="flex flex-row">
       <!-- @ts-ignore -->
@@ -92,7 +91,7 @@ function closeDialog() {
         <button
           v-for="(file, index) in props.files"
           :key="file.url"
-          :class="`py-3 pl-3 rounded mainSound my-1 w-1/2 border-2 z-20 index-${index} relative text-left`"
+          :class="`py-3 pl-3 rounded mainSound my-1 button-width border-2 z-20 index-${index} relative text-left`"
           :value="file.url"
           @click="
             (value) => {
@@ -113,7 +112,7 @@ function closeDialog() {
             <div class="absolute top-1 right-[-60px] flex">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-10 w-10 rounded-full p-2 bg-red-300"
+                class="h-10 w-10 p-2"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -136,3 +135,8 @@ function closeDialog() {
   </div>
 </template>
 
+<style scoped>
+.button-width {
+  width: calc(100% - 3rem - 60px)
+}
+</style>

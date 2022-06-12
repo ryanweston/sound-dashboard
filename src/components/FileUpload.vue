@@ -1,9 +1,8 @@
 <template>
   <div class="container">
     <!--UPLOAD-->
-    <form enctype="multipart/form-data">
-      <h1 class="mt-5">Upload Sound Files</h1>
-      <div class="dropbox">
+    <form enctype="multipart/form-data" class="mt-5">
+      <div class="dropbox bg-white border-2 border-primary text-primary hover:bg-primary hover:border-0 hover:text-white font-medium leading-6 text-center">
         <input
           type="file"
           multiple="multiple"
@@ -15,8 +14,7 @@
           class="input-file"
         />
         <p>
-          Drag your file(s) here to begin<br />
-          or click to browse
+          Upload sound files
         </p>
       </div>
     </form>
@@ -51,31 +49,17 @@ export default {
 
 <style lang="scss">
 .dropbox {
-  outline: 2px dashed grey; /* the dash box */
-  outline-offset: -10px;
-  background: lightcyan;
-  color: dimgray;
-  padding: 10px 10px;
-  min-height: 200px; /* minimum height */
+  border-radius:10px;
+  padding: 10px 0px;
+  min-height: 50px; /* minimum height */
   position: relative;
   cursor: pointer;
 }
 
 .input-file {
   opacity: 0; /* invisible but it's there! */
-  width: 100%;
-  height: 200px;
+  height: 50px;
   position: absolute;
   cursor: pointer;
-}
-
-.dropbox:hover {
-  background: lightblue; /* when mouse over to the drop zone, change color */
-}
-
-.dropbox p {
-  font-size: 1.2em;
-  text-align: center;
-  padding: 50px 0;
 }
 </style>
