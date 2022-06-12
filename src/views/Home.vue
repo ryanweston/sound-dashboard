@@ -74,10 +74,6 @@ function loadBuffers() {
 }
 
 watch(velocity, async (newVelocity, oldVelocity) => {
-  // set sound volume
-  players[activeSound.value.id].volume.value =
-    (newVelocity / 200) * (newVelocity / 300);
-  
   if (newVelocity != oldVelocity) {
     if (newVelocity < 50 && isActive.value) {
       console.log("RELEASE");
