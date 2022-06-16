@@ -1,0 +1,10 @@
+{
+  "extends": "@antfu",
+  "rules": {
+    "vue/component-definition-name-casing": ["error", "kebab-case"]
+  },
+  "ignorePatterns": [
+      "node_modules",
+      "dist"
+  ]
+}
