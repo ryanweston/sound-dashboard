@@ -43,7 +43,7 @@ let files = ref([]);
 
 const isActive = ref(false);
 
-const queue = ref([])
+const queue = ref([]);
 
 function setActiveSound(sound, file) {
   file ? (isFile.value = true) : (isFile.value = false);
@@ -73,25 +73,43 @@ function loadBuffers() {
   }
 }
 
+
+const stopSound = (id) => { 
+  if (isFile.value) {
+    players[id].stop(); 
+  } else {
+    synth.triggerRelease();
+  }
+}
+
+const startSound = (id) => { 
+  if (isFile.value) {
+    players[id].toDestination();
+    players[id].start();
+  } else {
+    synth.triggerAttack(activeSound.value.url);
+  }
+}
+
+watch(
+  () => ({...activeSound}), 
+  (newActive, oldActive) => {  
+    if (oldActive.value) {
+      stopSound(oldActive.value.id);
+    }
+
+    if (velocity.value >= 50) {
+      startSound(newActive.value.id);
+    }
+})
+
 watch(velocity, async (newVelocity, oldVelocity) => {
   if (newVelocity != oldVelocity) {
     if (newVelocity < 50 && isActive.value) {
-      console.log("RELEASE");
-      if (isFile.value) {
-        players[queue.value[0]].stop(); // issue here that the active sound is changed midway through velocity, it wont remove the previous sound from playing
-        if (queue.value.length > 1) 
-          queue.value.shift();
-      } else {
-        synth.triggerRelease();
-      }
+      stopSound(activeSound.value.id);
       isActive.value = false;
     } else if (newVelocity >= 50 && !isActive.value) {
-      if (isFile.value) {
-        players[activeSound.value.id].toDestination();
-        players[activeSound.value.id].start();
-      } else {
-        synth.triggerAttack(activeSound.value.url);
-      }
+      startSound(activeSound.value.id);
       isActive.value = true;
     }
   }
