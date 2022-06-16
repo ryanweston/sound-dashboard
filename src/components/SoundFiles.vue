@@ -62,23 +62,24 @@ function closeDialog() {
       absolute
       hidden
       bg-white
-      border-4
+      border-2
       rounded-lg
       top-1/2
       left-1/3
       w-1/3
       z-50
       text-center
-      bg-red-300
+      border-gray-200
       pt-5
       pb-5
       flex flex-col
+      shadow-lg
     "
   >
     {{ "Are you sure you want to delete this sound?" }}
-    <div class="mt-6 w-full flex justify-evenly">
-      <button @click="deleteFile()">YES</button>
-      <button @click="closeDialog()">NO</button>
+    <div class="mt-6 w-full flex justify-evenly g">
+      <button @click="closeDialog()">CANCEL</button>
+      <button class="text-red-600" @click="deleteFile()">DELETE</button>
     </div>
   </div>
 
