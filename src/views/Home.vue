@@ -103,7 +103,13 @@ watch(
     }
 })
 
+function scale (number, inMin, inMax, outMin, outMax) {
+    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+}
+
 watch(velocity, async (newVelocity, oldVelocity) => {
+  players[activeSound.value.id].volume.value = scale(newVelocity, 50, 1000, -20, 20)
+  
   if (newVelocity != oldVelocity) {
     if (newVelocity < 50 && isActive.value) {
       stopSound(activeSound.value.id);
